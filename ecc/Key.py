@@ -60,7 +60,7 @@ operations:
                         For supported hash functions see below.
 
 *   keyid()         Returns a (mostly) unique Key ID, which is
-                    shorter than the fingerprint. The result
+                    shorter than the fingerprint. The result:
                     is an integer of max. 64 bits.
 
 *   verify()        Verifies whether the given data (argument 1)
@@ -168,11 +168,11 @@ prime having great security characteristics, 521 bits are preferred
 over a constructed 512 bit field.)
 """
 
-from encoding import *
-from eccrypt import *
-import ecdsa
+from ecc.encoding import *
+from ecc.eccrypt import *
+import ecc.ecdsa as ecdsa
 import hashlib
-from SecurityViolationException import *
+from ecc.SecurityViolationException import *
 
 class Key:
 
@@ -214,7 +214,7 @@ class Key:
         if kid == k.keyid():
             return k
         else:
-            raise ValueError, "Invalid Key ID"
+            raise ValueError("Invalid Key ID")
 
     # --- IDENTIFICATION AND VALIDATION ----------------------------------------
 
@@ -259,7 +259,7 @@ class Key:
             s = ecdsa.sign(h, self._priv)
             return enc_point(s)
         else:
-            raise AttributeError, "Private key needed for signing."
+            raise AttributeError("Private key needed for signing.")
 
     def verify(self, data, sig, hashfunc = 'sha256'):
         '''Verify the signature of data using the specified hash function'''
@@ -294,7 +294,7 @@ class Key:
         if source.verify(text, sgn):
             return text
         else:
-            raise SecurityViolationException, "Invalid Signature"
+            raise SecurityViolationException("Invalid Signature")
 
 
 if __name__ == "__main__":
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     import time
 
     def test_overhead():
-        print "sender", "receiver", "+bytes", "+enctime", "+dectime"
+        print("sender", "receiver", "+bytes", "+enctime", "+dectime")
         for s in [192, 224, 256, 384, 521]:
             sender = Key.generate(s)
             for r in [192, 224, 256, 384, 521]:
@@ -313,7 +313,7 @@ if __name__ == "__main__":
                 t = time.time()
                 receiver.auth_decrypt(e, sender)
                 t2 = time.time() - t
-                print s, r, len(e), t1, t2
+                print(s, r, len(e), t1, t2)
 
                 
                 

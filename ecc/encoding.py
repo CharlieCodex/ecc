@@ -1,9 +1,10 @@
 #
 #   Encodings and Formats for Elliptic Curve Cryptography
 #
-
-import StringIO
-
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 # Big-Endian Encoding
 
 def enc_long(n):
@@ -68,14 +69,14 @@ def enc_point(p):
 
 def dec_point(s):
     '''Decode an even length string s to a point(x, y)'''
-    d = len(s) / 2
+    d = int(len(s) / 2)
     return (dec_long(s[:d]), dec_long(s[d:]))
 
 
 class Encoder:
 
     def __init__(self):
-        self._io = StringIO.StringIO()
+        self._io = StringIO()
 
     def int(self, n, size = 4):
         self._io.write(enc_fixed_long(n, size))
@@ -106,7 +107,7 @@ class Encoder:
 class Decoder:
 
     def __init__(self, data, offset = 0):
-        self._io = StringIO.StringIO(data)
+        self._io = StringIO(data)
         self._io.seek(offset)
         self._res = []
         self._limit = None
@@ -158,7 +159,7 @@ class Decoder:
             self._parent._res.append(self._res)
             return self._parent
         else:
-            raise RuntimeError, "Cannont exit top level Decoder"
+            raise RuntimeError("Cannont exit top level Decoder")
 
     def continues(self):
         return (not self._limit) or (self._io.tell() < self._limit)

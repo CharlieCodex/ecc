@@ -4,18 +4,18 @@
 #   COPYRIGHT (c) 2010 by Toni Mattis <solaris@live.de>
 #
 
-from elliptic import inv, mulf, mulp, muladdp, element
-from curves import get_curve, implemented_keys
+from ecc.elliptic import inv, mulf, mulp, muladdp, element
+from ecc.curves import get_curve, implemented_keys
 from os import urandom
 
 import hashlib
 
 def randkey(bits, n):
     '''Generate a random number (mod n) having the specified bit length'''
-    rb = urandom(bits / 8 + 8)  # + 64 bits as recommended in FIPS 186-3
+    rb = urandom(int(bits / 8 + 8))  # + 64 bits as recommended in FIPS 186-3
     c = 0
     for r in rb:
-        c = (c << 8) | ord(r)
+        c = (c << 8) | r
     return (c % (n - 1)) + 1
 
 def keypair(bits):
@@ -23,13 +23,13 @@ def keypair(bits):
     try:
         bits, cn, n, cp, cq, g = get_curve(bits)
     except KeyError:
-        raise ValueError, "Key size %s not implemented" % bits
+        raise ValueError("Key size {} not implemented".format(bits))
     if n > 0:
         d = randkey(bits, n)
         q = mulp(cp, cq, cn, g, d)
         return (bits, q), (bits, d)
     else:
-        raise ValueError, "Key size %s not suitable for signing" % bits
+        raise ValueError("Key size {} not suitable for signing".format(bits))
 
 def supported_keys():
     '''Return a list of all key sizes implemented for signing'''
@@ -134,17 +134,17 @@ if __name__ == "__main__":
         d = get_curve(bits)
         
         t = time.time()
-        for i in xrange(rounds):
+        for i in range(rounds):
             qk, dk = keypair(bits)
         tgen = time.time() - t
         
         t = time.time()
-        for i in xrange(rounds):
+        for i in range(rounds):
             s = sign(0, dk)
         tsign = time.time() - t
 
         t = time.time()
-        for i in xrange(rounds):
+        for i in range(rounds):
             verify(0, s, qk)
         tver = time.time() - t
 

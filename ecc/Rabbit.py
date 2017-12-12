@@ -31,17 +31,17 @@ class Rabbit:
                 key = '\x00' * (16 - len(key)) + key
             # if len(key) > 16 bytes only the first 16 will be considered
             k = [ord(key[i + 1]) | (ord(key[i]) << 8)
-                 for i in xrange(14, -1, -2)]
+                 for i in range(14, -1, -2)]
         else:
             # k[0] = least significant 16 bits
             # k[7] = most significant 16 bits
-            k = [(key >> i) & 0xFFFF for i in xrange(0, 128, 16)]
+            k = [(key >> i) & 0xFFFF for i in range(0, 128, 16)]
             
         # State and counter initialization
         x = [(k[(j + 5) % 8] << 16) | k[(j + 4) % 8] if j & 1 else
-             (k[(j + 1) % 8] << 16) | k[j] for j in xrange(8)]
+             (k[(j + 1) % 8] << 16) | k[j] for j in range(8)]
         c = [(k[j] << 16) | k[(j + 1) % 8] if j & 1 else
-             (k[(j + 4) % 8] << 16) | k[(j + 5) % 8] for j in xrange(8)]
+             (k[(j + 4) % 8] << 16) | k[(j + 5) % 8] for j in range(8)]
         
         self.x = x
         self.c = c
@@ -54,7 +54,7 @@ class Rabbit:
         self.next()
         self.next()
 
-        for j in xrange(8):
+        for j in range(8):
             c[j] ^= x[(j + 4) % 8]
         
         self.start_x = self.x[:]    # backup initial key for IV/reset
@@ -81,7 +81,7 @@ class Rabbit:
         if isinstance(iv, str):
             i = 0
             for c in iv:
-                i = (i << 8) | ord(c)
+                i = (i << 8) | c
             iv = i
 
         c = self.c
@@ -130,7 +130,7 @@ class Rabbit:
         c[7] = t % WORDSIZE
         b = t // WORDSIZE
         
-        g = [_nsf(x[j], c[j]) for j in xrange(8)]
+        g = [_nsf(x[j], c[j]) for j in range(8)]
         
         x[0] = (g[0] + rot16(g[7]) + rot16(g[6])) % WORDSIZE
         x[1] = (g[1] + rot08(g[0]) + g[7]) % WORDSIZE
@@ -168,7 +168,7 @@ class Rabbit:
         next = self.next
         derive = self.derive
         
-        for i in xrange(n):
+        for i in range(n):
             if not j:
                 j = 16
                 next()
@@ -182,9 +182,12 @@ class Rabbit:
         return res
 
 
-    def encrypt(self, data):
-        '''Encrypt/Decrypt data of arbitrary length.'''
-        
+    def encrypt(self, data, enc=True):
+        '''Encrypt data of arbitrary length.'''
+        if enc:
+            func = lambda x: x
+        else:
+            func = ord
         res = ""
         b = self._buf
         j = self._buf_bytes
@@ -196,14 +199,16 @@ class Rabbit:
                 j = 16
                 next()
                 b = derive()
-            res += chr(ord(c) ^ (b & 0xFF))
+            res += chr(func(c) ^ (b & 0xFF))
             j -= 1
             b >>= 1
         self._buf = b
         self._buf_bytes = j
         return res
 
-    decrypt = encrypt
+    def decrypt(self, data):
+        '''Decrypt data of arbitrary length.'''
+        return self.encrypt(data, enc=False)
         
     
 
